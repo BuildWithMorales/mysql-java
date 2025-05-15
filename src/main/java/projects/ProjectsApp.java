@@ -1,9 +1,11 @@
 package projects;
 
 import java.math.BigDecimal;
+
 import java.util.List;
 import java.util.Objects;
 import java.util.Scanner;
+import java.util.ArrayList;
 
 import projects.dao.DbConnection;
 import projects.entity.Project;
@@ -13,8 +15,13 @@ import projects.service.ProjectService;
 public class ProjectsApp {
 
     // This is the list of menu options we will show to the user
+	// @formatter:off
     private List<String> operations = List.of(
-        "1) Add a project"
+        "1) Add a project",
+    	"2) List projects",
+    	"3) Select a project"
+        
+    // @formatter:on
         // You can add more options later like "2) List projects", etc.
     );
 
@@ -51,6 +58,12 @@ public class ProjectsApp {
                     case 1:
                         createProject(); // Add new project
                         break;
+                    case 2:
+                    	listProjects(); // Call method to display all projects
+                    	break;
+                    case 3:
+                    	selectProject();
+                    	break;
                     default:
                         System.out.println("\n" + selection + " is not a valid option. Try again.");
                         break;
@@ -137,5 +150,36 @@ public class ProjectsApp {
         } catch (NumberFormatException e) {
             throw new DbException(input + " is not a valid decimal number.");
         }
+    }
+
+    private void listProjects() {
+        List<Project> projects = projectService.fetchAllProjects();
+
+        System.out.println("\nProjects:");
+
+        projects.forEach(project ->
+            System.out.println("  " + project.getProjectId() + ": " + project.getProjectName()));
+    }
+
+    private void selectProject() {
+        listProjects();
+
+        Integer projectId = getIntInput("Enter a project ID to select");
+
+        Project project = projectService.fetchProjectById(projectId);
+
+        System.out.println("\nYou have selected project:\n" + project);
+
+        List<String> materials = projectService.fetchMaterialsByProjectId(projectId);
+        System.out.println("\nMaterials:");
+        materials.forEach(material -> System.out.println(" - " + material));
+
+        List<String> steps = projectService.fetchStepsByProjectId(projectId);
+        System.out.println("\nSteps:");
+        steps.forEach(step -> System.out.println(" - " + step));
+        
+        List<String> categories = projectService.fetchCategoriesByProjectId(projectId);
+        System.out.println("\nCategories:");
+        categories.forEach(category -> System.out.println(" - " + category));
     }
 }
