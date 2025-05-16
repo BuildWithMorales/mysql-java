@@ -56,7 +56,7 @@ public class ProjectDao extends DaoBase {
     }
     public List<Project> fetchAllProjects() {
     	//SQL to select all project rows, ordered alphabetically
-    	String sql = "SELECT * FROM " + Project_Table + " ORDER BY project_name";
+    	String sql = "SELECT * FROM " + Project_Table + " ORDER BY project_id";
     	
     	try (Connection conn =DbConnection.getConnection()) {
     		startTransaction(conn); // Start transaction
@@ -191,5 +191,59 @@ public class ProjectDao extends DaoBase {
     	    	} catch (SQLException e) {
     	    		throw new DbException("Error fetching categories for project ID: " + projectId, e);
     	    	}
+    	    }
+    	    public boolean modifyProjectDetails(Project project) {
+    	    	String sql = ""
+    	    		+ "UPDATE " + Project_Table + " SET "
+    	    		+ "project_name = ?, "
+    	    		+ "estimated_hours = ?, "
+    	    		+ "actual_hours = ?, "
+    	    		+ "difficulty = ?, "
+    	    		+ "notes = ? "
+    	    		+ "WHERE project_id = ?";
+    	    	
+    	    	try (Connection conn = DbConnection.getConnection()) {
+    	    		startTransaction(conn);
+    	    		
+    	    		try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+    	    			setParameter(stmt, 1, project.getProjectName(), String.class);
+    	    			setParameter(stmt, 2, project.getEstimatedHours(), BigDecimal.class);
+    	    			setParameter(stmt, 3, project.getActualHours(), BigDecimal.class);
+    	    			setParameter(stmt, 4, project.getDifficulty(), Integer.class);
+    	    			setParameter(stmt, 5, project.getNotes(), String.class);
+    	    			setParameter(stmt, 6, project.getProjectId(), Integer.class);
+    	    			
+    	    			int rowsAffected = stmt.executeUpdate();
+    	    			
+    	    			commitTransaction(conn);
+    	    			return rowsAffected == 1;
+    	    		} catch (Exception e) {
+    	    			rollbackTransaction(conn);
+    	    			throw new DbException("Error updating project details.", e);
+    	    		}
+    	    	} catch (SQLException e) {
+    	    		throw new DbException("Database connection error.", e);
+    	    	}
+    	    }
+    	    public boolean deleteProject(Integer projectId) {
+    	        String sql = "DELETE FROM project WHERE project_id = ?";
+
+    	        try (Connection conn = DbConnection.getConnection()) {
+    	            startTransaction(conn);
+
+    	            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+    	                setParameter(stmt, 1, projectId, Integer.class);
+
+    	                int rowsAffected = stmt.executeUpdate();
+
+    	                commitTransaction(conn);
+    	                return rowsAffected == 1;
+    	            } catch (Exception e) {
+    	                rollbackTransaction(conn);
+    	                throw new DbException("Error deleting project with ID=" + projectId, e);
+    	            }
+    	        } catch (SQLException e) {
+    	            throw new DbException("Database error while deleting project.", e);
+    	        }
     	    }
     	}  

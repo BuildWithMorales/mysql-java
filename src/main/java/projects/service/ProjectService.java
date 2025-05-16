@@ -1,8 +1,11 @@
 package projects.service;
 
+
 import projects.dao.ProjectDao;
+
 import projects.entity.Project;
 import java.util.List;
+import projects.exception.DbException;
 
 public class ProjectService {
 	
@@ -26,6 +29,21 @@ public class ProjectService {
 	}
 	public List<String> fetchCategoriesByProjectId(Integer projectId) {
 		return projectDao.fetchCategoriesByProjectId(projectId);
+	}
+	public void modifyProjectDetails(Project project) {
+		boolean updated = projectDao.modifyProjectDetails(project);
+		
+		if (!updated) {
+			throw new DbException("Project with ID=" + project.getProjectId() + "does not exist.");
+			
+		}
+	}
+	public void deleteProject(Integer projectId) {
+		boolean deleted = projectDao.deleteProject(projectId);
+		
+		if (!deleted) {
+			throw new DbException("Project with ID=" + projectId + " does not exist.");
+		}
 	}
 
 }
